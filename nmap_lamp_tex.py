@@ -51,3 +51,6 @@ def create_latex_report(scanner, filename):
         f.write(r"\end{document}" + "\n")
 
 if __name__ == "__
+    target = "example.com"  # Replace with the target LAMP website
+    scanner = scan_vulnerabilities(target)
+    create_latex_report(scanner, "vulnerability_report")
