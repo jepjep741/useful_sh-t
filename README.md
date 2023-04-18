@@ -1,2 +1,2 @@
-# usefull_shit
+# usefull_sh*t
 Misc scripts etc.
