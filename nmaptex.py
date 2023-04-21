@@ -1,6 +1,11 @@
 import os
+import subprocess
 
-def generate_latex(command, filename='output.tex'):
+def run_nmap(command):
+    result = subprocess.run(command.split(), capture_output=True, text=True)
+    return result.stdout
+
+def generate_latex(command, output, filename='output.tex'):
     content = r'''\documentclass{article}
 \usepackage{listings}
 \usepackage{xcolor}
@@ -59,7 +64,7 @@ The following Nmap command is used for vulnerability scanning:
     \item \texttt{example.org}: This is the target hostname or IP address that you want to scan for vulnerabilities.
 \end{itemize}
 
-\section{Example Usage}
+\section{Example Usage and Result}
 
 Suppose you want to scan "example.org" for vulnerabilities. You would use the following command:
 
@@ -69,19 +74,32 @@ Suppose you want to scan "example.org" for vulnerabilities. You would use the fo
 
 This command will run Nmap with version detection and vulnerability scanning scripts against the target host "example.org". The output will display the discovered services, their versions, and any identified vulnerabilities.
 
+\section{Nmap Output}
+
+Here is the captured Nmap output for the given command:
+
+\begin{lstlisting}
+%s
+\end{lstlisting}
+
 \end{document}
-''' % (command, command)
+''' % (command, command, output)
 
     with open(filename, 'w') as f:
         f.write(content)
 
 def compile_latex(filename):
     basename = os.path.splitext(filename)[0]
-    os.system(f'pdflatex {basename}.tex')
+        os.system(f'pdflatex {basename}.tex')
 
 if __name__ == '__main__':
     command = 'nmap -sV --script vuln example.org'
     filename = 'output.tex'
 
-    generate_latex(command, filename)
-    compile_latex(filename)
+    # Run Nmap command and capture the output
+    output = run_nmap(command)
+
+    # Generate and compile LaTeX document with Nmap command and its output
+    generate_latex(command, output, filename)
+    #compile_latex(filename)
+
