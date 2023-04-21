@@ -3,6 +3,7 @@ import json
 import csv
 import subprocess
 import sys
+import json
 
 # Functions for converting reports to LaTeX format
 # For Wapiti
@@ -17,11 +18,18 @@ def convert_wapiti_vuln_to_latex(vuln):
 
 # For Nikto2
 def convert_nikto_vuln_to_latex(vuln):
-    latex_vuln = f"\\textbf{{IP}}: {vuln['IP']}\\\\\n"
-    latex_vuln += f"\\textbf{{Hostname}}: {vuln['hostname']}\\\\\n"
+    json_dict = json.loads(vuln)    
+    # Access the 'vulnerabilities' key in the dictionary
+    vulnerabilities = json_dict['vulnerabilities']
+    vulnerability_string = ""
+    for vuln in vulnerabilities:
+        vulnerability_string += f"{vuln['id']}: {vuln['msg']}\n"
+
+    latex_vuln = f"\\textbf{{IP}}: {vuln['ip']}\\\\\n"
+    latex_vuln += f"\\textbf{{Hostname}}: {vuln['host']}\\\\\n"
     latex_vuln += f"\\textbf{{Port}}: {vuln['port']}\\\\\n"
-    latex_vuln += f"\\textbf{{URI}}: \\url{{{vuln['uri']}}}\\\\\n"
-    latex_vuln += f"\\textbf{{Description}}: {vuln['description']}\\\\\n"
+    latex_vuln += f"\\textbf{{Banner}}: {vuln['banner']}\\\\\n"
+    latex_vuln += f"\\textbf{{Vulnerabilities}}: {vulnerability_string}\\\\\n"
     latex_vuln += "\\vspace{1em}\n"
     return latex_vuln
 
@@ -42,7 +50,7 @@ def main():
     subprocess.run(['wapiti', '-u', target_url, '-f', 'json', '-o', 'wapiti_report.json'])
 
     # Run Nikto2 scan
-    subprocess.run(['nikto', '-h', target_url, '-o', 'nikto_report.csv', '-Format', 'csv'])
+    subprocess.run(['nikto', '-h', target_url, '-ask','no','-o', 'nikto_report.json', '-Format', 'json'])
 
     # Run SQLMap scan
     subprocess.run(['python', 'sqlmap.py', '-u', target_url, '--batch', '--output-dir=output', '--forms', '--threads=10', '--eta', '--flush-session', '--fresh-queries', '--smart', '--level=3', '--risk=3', '--random-agent', '--json-output'])
@@ -59,7 +67,7 @@ def main():
         f.write("\n".join(latex_wapiti_vulns))
 
     # Convert Nikto2 CSV report to LaTeX
-    with open('nikto_report.csv', 'r') as f:
+    with open('nikto_report.json', 'r') as f:
         reader = csv.DictReader(f)
         vulns = [row for row in reader]
 
@@ -110,9 +118,7 @@ def main():
         f.write(main_tex)
 
     # Compile the LaTeX document to generate the combined PDF report
-    subprocess.run(['pdflatex', 'combined_report.tex'])
+    subprocess.run(['pdflatex', 'scanner_report.tex'])
 
 if __name__ == "__main__":
     main()
-
-
